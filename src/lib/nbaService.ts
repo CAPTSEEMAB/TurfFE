@@ -1,120 +1,150 @@
 import { apiFetch } from './api';
 
-export interface NBAGame {
-  id: number;
-  date: string;
-  home_team: {
-    id: number;
-    name: string;
-    city: string;
-    conference: string;
-  };
-  visitor_team: {
-    id: number;
-    name: string;
-    city: string;
-    conference: string;
-  };
-  home_team_score?: number;
-  visitor_team_score?: number;
-  status: string;
-  period?: number;
-  time?: string;
+export interface SportGame {
+  id: string;
+  sport_key: string;
+  sport_title: string;
+  commence_time: string;
+  home_team: string;
+  away_team: string;
+  bookmakers: Array<{
+    key: string;
+    title: string;
+    last_update: string;
+    markets: Array<{
+      key: string;
+      last_update: string;
+      outcomes: Array<{
+        name: string;
+        price: number;
+        point?: number;
+      }>;
+    }>;
+  }>;
 }
 
-export interface NBATeam {
-  id: number;
-  name: string;
-  city: string;
-  conference: string;
-  division: string;
-}
+export interface NBAGame extends SportGame {}
+export interface FootballGame extends SportGame {}
+export interface CricketGame extends SportGame {}
 
-class NBAService {
-  private baseURL = 'https://www.balldontlie.io/api/v1';
+export type SportType = 'basketball_nba' | 'soccer_epl' | 'soccer_uefa_champs_league' | 'cricket_international_t20' | 'cricket_odi';
 
-  async getTodaysGames(): Promise<NBAGame[]> {
+class SportsOddsService {
+  private baseURL = 'https://api.the-odds-api.com/v4';
+  private apiKey = import.meta.env.VITE_ODDS_API_KEY || 'YOUR_ODDS_API_KEY_HERE';
+
+  // Sport configurations
+  private sportConfigs = {
+    basketball_nba: {
+      name: 'NBA',
+      displayName: 'NBA Basketball'
+    },
+    soccer_epl: {
+      name: 'EPL',
+      displayName: 'English Premier League'
+    },
+    soccer_uefa_champs_league: {
+      name: 'UCL',
+      displayName: 'UEFA Champions League'
+    },
+    cricket_international_t20: {
+      name: 'T20',
+      displayName: 'International T20 Cricket'
+    },
+    cricket_odi: {
+      name: 'ODI',
+      displayName: 'One Day International Cricket'
+    }
+  };
+
+  async getGames(sportKey: SportType, limit?: number): Promise<SportGame[]> {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const response = await fetch(`${this.baseURL}/games?dates[]=${today}&per_page=50`);
+      const response = await fetch(`${this.baseURL}/sports/${sportKey}/odds?regions=us&markets=h2h,spreads,totals&apiKey=${this.apiKey}`);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch NBA games');
+        throw new Error(`Failed to fetch ${this.sportConfigs[sportKey].displayName} odds`);
       }
 
       const data = await response.json();
-      return data.data || [];
+      return limit ? data.slice(0, limit) : data || [];
     } catch (error) {
-      console.error('Error fetching NBA games:', error);
+      console.error(`Error fetching ${sportKey} odds:`, error);
       return [];
     }
   }
 
-  async getUpcomingGames(limit: number = 10): Promise<NBAGame[]> {
+  async getTodaysGames(sportKey: SportType = 'basketball_nba'): Promise<SportGame[]> {
+    return this.getGames(sportKey);
+  }
+
+  async getUpcomingGames(sportKey: SportType = 'basketball_nba', limit: number = 10): Promise<SportGame[]> {
+    return this.getGames(sportKey, limit);
+  }
+
+  async getGamesByDate(sportKey: SportType, date: string): Promise<SportGame[]> {
     try {
-      const today = new Date();
-      const futureDate = new Date();
-      futureDate.setDate(today.getDate() + 7); // Next 7 days
-
-      const startDate = today.toISOString().split('T')[0];
-      const endDate = futureDate.toISOString().split('T')[0];
-
-      const response = await fetch(`${this.baseURL}/games?start_date=${startDate}&end_date=${endDate}&per_page=${limit}`);
+      const response = await fetch(`${this.baseURL}/sports/${sportKey}/odds?regions=us&markets=h2h,spreads,totals&apiKey=${this.apiKey}`);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch upcoming NBA games');
+        throw new Error(`Failed to fetch ${this.sportConfigs[sportKey].displayName} odds for date`);
       }
 
       const data = await response.json();
-      return data.data || [];
+      // Filter by commence_time date
+      const targetDate = new Date(date).toDateString();
+      return data ? data.filter((game: SportGame) =>
+        new Date(game.commence_time).toDateString() === targetDate
+      ) : [];
     } catch (error) {
-      console.error('Error fetching upcoming NBA games:', error);
+      console.error(`Error fetching ${sportKey} odds by date:`, error);
       return [];
     }
   }
 
-  async getGamesByDate(date: string): Promise<NBAGame[]> {
-    try {
-      const response = await fetch(`${this.baseURL}/games?dates[]=${date}&per_page=50`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch NBA games for date');
-      }
-
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('Error fetching NBA games by date:', error);
-      return [];
-    }
+  // NBA-specific methods (backward compatibility)
+  async getTodaysNBAGames(): Promise<NBAGame[]> {
+    return this.getTodaysGames('basketball_nba') as Promise<NBAGame[]>;
   }
 
-  async getTeamGames(teamId: number, season: number = 2024): Promise<NBAGame[]> {
-    try {
-      const response = await fetch(`${this.baseURL}/games?team_ids[]=${teamId}&seasons[]=${season}&per_page=50`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch team games');
-      }
-
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('Error fetching team games:', error);
-      return [];
-    }
+  async getUpcomingNBAGames(limit: number = 10): Promise<NBAGame[]> {
+    return this.getUpcomingGames('basketball_nba', limit) as Promise<NBAGame[]>;
   }
 
-  formatGameTime(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+  // Football (Soccer) methods
+  async getTodaysFootballGames(league: 'epl' | 'champions_league' = 'epl'): Promise<FootballGame[]> {
+    const sportKey = league === 'epl' ? 'soccer_epl' : 'soccer_uefa_champs_league';
+    return this.getTodaysGames(sportKey) as Promise<FootballGame[]>;
   }
 
-  formatGameDate(dateString: string): string {
+  async getUpcomingFootballGames(league: 'epl' | 'champions_league' = 'epl', limit: number = 10): Promise<FootballGame[]> {
+    const sportKey = league === 'epl' ? 'soccer_epl' : 'soccer_uefa_champs_league';
+    return this.getUpcomingGames(sportKey, limit) as Promise<FootballGame[]>;
+  }
+
+  // Cricket methods
+  async getTodaysCricketGames(format: 't20' | 'odi' = 't20'): Promise<CricketGame[]> {
+    const sportKey = format === 't20' ? 'cricket_international_t20' : 'cricket_odi';
+    return this.getTodaysGames(sportKey) as Promise<CricketGame[]>;
+  }
+
+  async getUpcomingCricketGames(format: 't20' | 'odi' = 't20', limit: number = 10): Promise<CricketGame[]> {
+    const sportKey = format === 't20' ? 'cricket_international_t20' : 'cricket_odi';
+    return this.getUpcomingGames(sportKey, limit) as Promise<CricketGame[]>;
+  }
+
+  getSportConfig(sportKey: SportType) {
+    return this.sportConfigs[sportKey];
+  }
+
+  getAvailableSports(): Array<{key: SportType, name: string, displayName: string}> {
+    return Object.entries(this.sportConfigs).map(([key, config]) => ({
+      key: key as SportType,
+      name: config.name,
+      displayName: config.displayName
+    }));
+  }
+
+  formatOddsDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
@@ -123,15 +153,97 @@ class NBAService {
     });
   }
 
-  getGameStatus(game: NBAGame): string {
-    if (game.status === 'Final') {
-      return 'Final';
+  formatOddsTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
+  getOddsUpdateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
+  formatOddsValue(decimalOdds: number): string {
+    // Convert decimal odds to American odds
+    if (decimalOdds >= 2.0) {
+      // Positive American odds (underdog)
+      const americanOdds = Math.round((decimalOdds - 1) * 100);
+      return `+${americanOdds}`;
+    } else {
+      // Negative American odds (favorite)
+      const americanOdds = Math.round(-100 / (decimalOdds - 1));
+      return americanOdds.toString();
     }
-    if (game.period && game.period > 0) {
-      return `Q${game.period} ${game.time || ''}`;
-    }
-    return this.formatGameTime(game.date);
+  }
+
+  formatTeamName(teamName: string): string {
+    // Common team abbreviations for better display
+    const abbreviations: { [key: string]: string } = {
+      'Philadelphia 76ers': 'PHI',
+      'Washington Wizards': 'WAS',
+      'Los Angeles Lakers': 'LAL',
+      'Golden State Warriors': 'GSW',
+      'Boston Celtics': 'BOS',
+      'Milwaukee Bucks': 'MIL',
+      'Denver Nuggets': 'DEN',
+      'Phoenix Suns': 'PHX',
+      'Dallas Mavericks': 'DAL',
+      'Miami Heat': 'MIA',
+      'Atlanta Hawks': 'ATL',
+      'New York Knicks': 'NYK',
+      'Brooklyn Nets': 'BKN',
+      'Toronto Raptors': 'TOR',
+      'Chicago Bulls': 'CHI',
+      'Cleveland Cavaliers': 'CLE',
+      'Indiana Pacers': 'IND',
+      'Detroit Pistons': 'DET',
+      'Orlando Magic': 'ORL',
+      'Charlotte Hornets': 'CHA',
+      'San Antonio Spurs': 'SAS',
+      'New Orleans Pelicans': 'NOP',
+      'Sacramento Kings': 'SAC',
+      'Portland Trail Blazers': 'POR',
+      'Oklahoma City Thunder': 'OKC',
+      'Utah Jazz': 'UTA',
+      'Memphis Grizzlies': 'MEM',
+      'Houston Rockets': 'HOU',
+      'Minnesota Timberwolves': 'MIN'
+    };
+
+    return abbreviations[teamName] || teamName.split(' ').pop() || teamName;
+  }
+
+  getBestOdds(game: SportGame, marketKey: string) {
+    const bestOdds: { [key: string]: any } = {};
+
+    game.bookmakers.forEach(bookmaker => {
+      const market = bookmaker.markets.find(m => m.key === marketKey);
+      if (market) {
+        market.outcomes.forEach(outcome => {
+          const key = outcome.name;
+          if (!bestOdds[key] || outcome.price > bestOdds[key].price) {
+            bestOdds[key] = {
+              price: outcome.price,
+              bookmaker: bookmaker.title,
+              point: outcome.point
+            };
+          }
+        });
+      }
+    });
+
+    return bestOdds;
   }
 }
 
-export const nbaService = new NBAService();
+export const nbaService = new SportsOddsService();

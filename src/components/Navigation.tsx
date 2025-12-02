@@ -42,6 +42,13 @@ const Navigation = () => {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary transition-all duration-300 group-hover:w-full" />
             </Link>
             <Link 
+              to="/games" 
+              className="text-sm font-medium transition-spring hover:text-primary relative group"
+            >
+              Game Odds
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary transition-all duration-300 group-hover:w-full" />
+            </Link>
+            <Link 
               to="/about" 
               className="text-sm font-medium transition-spring hover:text-primary relative group"
             >

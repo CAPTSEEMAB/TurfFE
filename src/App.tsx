@@ -11,6 +11,7 @@ import PlayerDetail from "./pages/PlayerDetail";
 import ComparePlayer from "./pages/ComparePlayer";
 import Auth from "./pages/Auth";
 import About from "./pages/About";
+import Games from "./pages/Games";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/compare-players" element={<ComparePlayer />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/about" element={<About />} />
+          <Route path="/games" element={<Games />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

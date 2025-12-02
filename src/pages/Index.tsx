@@ -347,18 +347,6 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* NBA Games Section */}
-              <div className="mt-16">
-                <Card className="glass border-primary/20 shadow-card animate-fade-in-up">
-                  <CardHeader>
-                    <CardTitle className="text-2xl font-display text-gradient">🏀 NBA Games</CardTitle>
-                    <p className="text-sm text-muted-foreground">Stay updated with today's NBA action</p>
-                  </CardHeader>
-                  <CardContent>
-                    <NBAGames type="today" showHeader={false} />
-                  </CardContent>
-                </Card>
-              </div>
             </>
           )}
         </div>
