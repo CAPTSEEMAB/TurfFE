@@ -8,6 +8,7 @@ import { Users, TrendingUp, Activity, Award, Calendar } from "lucide-react";
 import heroBanner from "@/assets/hero-banner.jpg";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { API_ENDPOINTS, apiFetch } from "@/lib/api";
+import { NBAGames } from "@/components/NBAGames";
 
 
 
@@ -344,6 +345,19 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 </div>
+              </div>
+
+              {/* NBA Games Section */}
+              <div className="mt-16">
+                <Card className="glass border-primary/20 shadow-card animate-fade-in-up">
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-display text-gradient">🏀 NBA Games</CardTitle>
+                    <p className="text-sm text-muted-foreground">Stay updated with today's NBA action</p>
+                  </CardHeader>
+                  <CardContent>
+                    <NBAGames type="today" showHeader={false} />
+                  </CardContent>
+                </Card>
               </div>
             </>
           )}
