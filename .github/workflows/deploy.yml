@@ -46,14 +46,14 @@ jobs:
     - name: Deploy to S3
       run: |
         # Upload assets with long cache
-        aws s3 sync dist/ s3://turf-frontend-29062025 \
+        aws s3 sync build/ s3://turf-frontend-29062025 \
           --delete \
           --cache-control "public,max-age=31536000,immutable" \
           --exclude "*.html" \
           --exclude "service-worker.js"
         
         # Upload HTML files with no cache
-        aws s3 sync dist/ s3://turf-frontend-29062025 \
+        aws s3 sync build/ s3://turf-frontend-29062025 \
           --delete \
           --cache-control "public,max-age=0,must-revalidate" \
           --exclude "*" \
