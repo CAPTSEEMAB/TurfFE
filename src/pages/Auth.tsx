@@ -51,15 +51,6 @@ const Auth = () => {
       });
       const data = await res.json();
       
-      // Debug logging
-      console.log('🔐 Login Response:', {
-        status: res.status,
-        success: data.success,
-        hasToken: !!(data.data && data.data.token),
-        tokenPreview: data.data?.token ? `${data.data.token.substring(0, 20)}...` : null,
-        fullData: data
-      });
-      
       if (data.success && data.data && data.data.token) {
         setLoginSuccess('Login successful!');
         setToken(data.data.token);
@@ -67,17 +58,17 @@ const Auth = () => {
         
         // Verify token was stored
         const storedToken = localStorage.getItem('token');
-        console.log('✅ Token stored in localStorage:', storedToken ? `${storedToken.substring(0, 20)}...` : null);
+        // Token stored in localStorage
         
         setTimeout(() => {
           navigate('/');
         }, 1000);
       } else {
-        console.error('❌ Login failed:', data);
+        // Login failed - error toast shown to user
         setLoginError(data.error?.message || data.message || 'Login failed');
       }
     } catch (err) {
-      console.error('❌ Network error:', err);
+      // Network error - error toast shown to user
       setLoginError('Network error');
     }
     setIsLoading(false);

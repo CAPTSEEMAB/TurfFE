@@ -76,7 +76,7 @@ const ComparePlayer = () => {
 
   const fetchPlayerDetails = async (id: string, playerNum: 1 | 2) => {
     try {
-      const res = await apiFetch(`${API_ENDPOINTS.PLAYERS}/${id}?days=30`);
+      const res = await apiFetch(`${API_ENDPOINTS.PLAYERS}/${id}?days=365`);
       const data = await res.json();
       if (data.success) {
         if (playerNum === 1) setPlayer1(data.data);

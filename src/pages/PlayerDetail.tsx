@@ -60,7 +60,7 @@ const PlayerDetail = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await apiFetch(`${API_ENDPOINTS.PLAYERS}/${id}?days=30`);
+        const res = await apiFetch(`${API_ENDPOINTS.PLAYERS}/${id}?days=365`);
         if (res.status === 401) {
           navigate("/auth");
           return;

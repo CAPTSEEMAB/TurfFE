@@ -26,13 +26,13 @@ export const apiFetch = async (url: string, options: RequestInit = {}): Promise<
   
   // Debug logging only in development
   if (import.meta.env.DEV) {
-    console.log('🚀 API Request:', { url: fullUrl, method: options.method || 'GET' });
+    // Logging disabled in production
   }
   
   const response = await fetch(fullUrl, { ...options, headers });
   
   if (import.meta.env.DEV) {
-    console.log('📡 API Response:', { url: fullUrl, status: response.status });
+    // Response logging disabled
   }
   
   return response;
