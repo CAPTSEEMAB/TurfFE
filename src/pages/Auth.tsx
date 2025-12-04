@@ -110,7 +110,7 @@ const Auth = () => {
                 <Calendar className="h-6 w-6 text-primary-foreground" />
               </div>
             </Link>
-            <h1 className="text-3xl font-bold">Welcome to TurfBook</h1>
+            <h1 className="text-3xl font-bold">Welcome to TurfBook - Prod</h1>
             <p className="mt-2 text-muted-foreground">
               Sign in to book your favorite sports venues
             </p>
