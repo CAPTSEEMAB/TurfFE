@@ -54,7 +54,7 @@ export const NBAGames: React.FC<NBAGamesProps> = ({
   };
 
   const getBestOdds = (game: SportGame, marketKey: string) => {
-    const bestOdds: { [key: string]: any } = {};
+    const bestOdds: { [key: string]: { price: number; name: string } } = {};
 
     game.bookmakers.forEach(bookmaker => {
       const market = bookmaker.markets.find(m => m.key === marketKey);

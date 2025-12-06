@@ -23,9 +23,9 @@ export interface SportGame {
   }>;
 }
 
-export interface NBAGame extends SportGame {}
-export interface FootballGame extends SportGame {}
-export interface CricketGame extends SportGame {}
+export type NBAGame = SportGame;
+export type FootballGame = SportGame;
+export type CricketGame = SportGame;
 
 export type SportType = 'basketball_nba' | 'soccer_epl' | 'soccer_uefa_champs_league' | 'cricket_international_t20' | 'cricket_odi';
 
@@ -224,7 +224,7 @@ class SportsOddsService {
   }
 
   getBestOdds(game: SportGame, marketKey: string) {
-    const bestOdds: { [key: string]: any } = {};
+    const bestOdds: { [key: string]: { price: number; name: string } } = {};
 
     game.bookmakers.forEach(bookmaker => {
       const market = bookmaker.markets.find(m => m.key === marketKey);

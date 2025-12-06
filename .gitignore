@@ -22,3 +22,8 @@ build-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated analysis/report files
+eslint-report.txt
+typescript-report.txt
+audit-report.json

@@ -136,7 +136,14 @@ const ComparePlayer = () => {
   const stats1 = calculateStats(player1);
   const stats2 = calculateStats(player2);
 
-  const StatComparison = ({ label, value1, value2, icon: Icon }: any) => {
+  interface StatComparisonProps {
+    label: string;
+    value1: number;
+    value2: number;
+    icon: React.ComponentType<{ className?: string }>;
+  }
+
+  const StatComparison = ({ label, value1, value2, icon: Icon }: StatComparisonProps) => {
     const isP1Better = value1 > value2;
     const isP2Better = value2 > value1;
     return (
