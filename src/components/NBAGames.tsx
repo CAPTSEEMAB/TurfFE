@@ -53,28 +53,6 @@ export const NBAGames: React.FC<NBAGamesProps> = ({
     setExpandedGame(expandedGame === gameId ? null : gameId);
   };
 
-  const getBestOdds = (game: SportGame, marketKey: string) => {
-    const bestOdds: { [key: string]: { price: number; name: string } } = {};
-
-    game.bookmakers.forEach(bookmaker => {
-      const market = bookmaker.markets.find(m => m.key === marketKey);
-      if (market) {
-        market.outcomes.forEach(outcome => {
-          const key = outcome.name;
-          if (!bestOdds[key] || outcome.price > bestOdds[key].price) {
-            bestOdds[key] = {
-              price: outcome.price,
-              bookmaker: bookmaker.title,
-              point: outcome.point
-            };
-          }
-        });
-      }
-    });
-
-    return bestOdds;
-  };
-
   const sportConfig = nbaService.getSportConfig(sport);
 
   if (loading) {
@@ -145,9 +123,9 @@ export const NBAGames: React.FC<NBAGamesProps> = ({
       )}
       <CardContent className="space-y-4">
         {games.map((game) => {
-          const h2hOdds = getBestOdds(game, 'h2h');
-          const spreadsOdds = getBestOdds(game, 'spreads');
-          const totalsOdds = getBestOdds(game, 'totals');
+          const h2hOdds = nbaService.getBestOdds(game, 'h2h');
+          const spreadsOdds = nbaService.getBestOdds(game, 'spreads');
+          const totalsOdds = nbaService.getBestOdds(game, 'totals');
           const isExpanded = expandedGame === game.id;
 
           return (
