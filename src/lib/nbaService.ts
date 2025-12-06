@@ -224,7 +224,7 @@ class SportsOddsService {
   }
 
   getBestOdds(game: SportGame, marketKey: string) {
-    const bestOdds: { [key: string]: { price: number; name: string } } = {};
+    const bestOdds: { [key: string]: { price: number; name: string; bookmaker: string; point?: number } } = {};
 
     game.bookmakers.forEach(bookmaker => {
       const market = bookmaker.markets.find(m => m.key === marketKey);
@@ -234,6 +234,7 @@ class SportsOddsService {
           if (!bestOdds[key] || outcome.price > bestOdds[key].price) {
             bestOdds[key] = {
               price: outcome.price,
+              name: outcome.name,
               bookmaker: bookmaker.title,
               point: outcome.point
             };
