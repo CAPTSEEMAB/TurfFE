@@ -6,7 +6,7 @@
  * Generates a quality score (0-10) based on ESLint analysis results
  */
 
-import { spawn } from 'child_process';
+import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -57,23 +57,7 @@ const generateReport = (data) => {
 
 const runEslint = () => {
   return new Promise((resolve, reject) => {
-    const eslint = spawn('npx', ['eslint', '.', '--format', 'json'], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      shell: false,
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    eslint.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    eslint.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    eslint.on('close', (code) => {
+    execFile('npx', ['eslint', '.', '--format', 'json'], (error, stdout, stderr) => {
       try {
         const trimmed = stdout.trim();
         if (!trimmed) {
