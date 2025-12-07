@@ -14,13 +14,13 @@ export const API_ENDPOINTS = {
 } as const;
 
 // Wrapper for fetch with automatic JWT token attachment and error handling
-export const apiFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+export const apiFetch = async (url: string, options: Record<string, unknown> = {}): Promise<Response> => {
   const token = localStorage.getItem('token');
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
-    ...options.headers,
+    ...(options.headers as Record<string, string> || {}),
   };
   
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;

@@ -78,7 +78,7 @@ class SportsOddsService {
     return this.getGames(sportKey);
   }
 
-  async getUpcomingGames(sportKey: SportType = 'basketball_nba', limit: number = 10): Promise<SportGame[]> {
+  async getUpcomingGames(sportKey: SportType = 'basketball_nba', limit = 10): Promise<SportGame[]> {
     return this.getGames(sportKey, limit);
   }
 
@@ -105,7 +105,7 @@ class SportsOddsService {
     return this.getTodaysGames('basketball_nba') as Promise<NBAGame[]>;
   }
 
-  async getUpcomingNBAGames(limit: number = 10): Promise<NBAGame[]> {
+  async getUpcomingNBAGames(limit = 10): Promise<NBAGame[]> {
     return this.getUpcomingGames('basketball_nba', limit) as Promise<NBAGame[]>;
   }
 
@@ -114,7 +114,7 @@ class SportsOddsService {
     return this.getTodaysGames(sportKey) as Promise<FootballGame[]>;
   }
 
-  async getUpcomingFootballGames(league: 'epl' | 'champions_league' = 'epl', limit: number = 10): Promise<FootballGame[]> {
+  async getUpcomingFootballGames(league: 'epl' | 'champions_league' = 'epl', limit = 10): Promise<FootballGame[]> {
     const sportKey = league === 'epl' ? 'soccer_epl' : 'soccer_uefa_champs_league';
     return this.getUpcomingGames(sportKey, limit) as Promise<FootballGame[]>;
   }
@@ -124,7 +124,7 @@ class SportsOddsService {
     return this.getTodaysGames(sportKey) as Promise<CricketGame[]>;
   }
 
-  async getUpcomingCricketGames(format: 't20' | 'odi' = 't20', limit: number = 10): Promise<CricketGame[]> {
+  async getUpcomingCricketGames(format: 't20' | 'odi' = 't20', limit = 10): Promise<CricketGame[]> {
     const sportKey = format === 't20' ? 'cricket_international_t20' : 'cricket_odi';
     return this.getUpcomingGames(sportKey, limit) as Promise<CricketGame[]>;
   }
@@ -174,10 +174,10 @@ class SportsOddsService {
     if (decimalOdds >= 2.0) {
       const americanOdds = Math.round((decimalOdds - 1) * 100);
       return `+${americanOdds}`;
-    } else {
+    } 
       const americanOdds = Math.round(-100 / (decimalOdds - 1));
       return americanOdds.toString();
-    }
+    
   }
 
   formatTeamName(teamName: string): string {

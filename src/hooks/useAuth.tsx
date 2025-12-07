@@ -7,7 +7,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    setIsAuthenticated(Boolean(token));
     setLoading(false);
   }, []);
 

@@ -111,12 +111,11 @@ export function useMutation<T = unknown>(
         if (successMessage) toast.success(successMessage);
         onSuccess?.(data);
         return true;
-      } else {
-        const msg = data.message || errorMessage || 'Operation failed';
-        toast.error(msg);
-        onError?.(msg);
-        return false;
       }
+      const msg = data.message || errorMessage || 'Operation failed';
+      toast.error(msg);
+      onError?.(msg);
+      return false;
     } catch (err) {
       const msg = 'Network error';
       toast.error(msg);
