@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-
 /* eslint-disable no-unused-vars, no-console */
+
 /**
  * ESLint Score Generator - Similar to Pylint Rating
  * Generates a quality score (0-10) based on ESLint analysis results
