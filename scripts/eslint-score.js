@@ -6,7 +6,7 @@
  * Generates a quality score (0-10) based on ESLint analysis results
  */
 
-import { execFile } from 'child_process';
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -57,19 +57,32 @@ const generateReport = (data) => {
 
 const runEslint = () => {
   return new Promise((resolve, reject) => {
-    execFile('npx', ['eslint', '.', '--format', 'json'], (error, stdout, stderr) => {
-      try {
-        const trimmed = stdout.trim();
-        if (!trimmed) {
-          resolve([]);
-          return;
-        }
-        const data = JSON.parse(trimmed);
-        resolve(data);
-      } catch (e) {
-        reject(new Error(`Failed to parse ESLint output: ${e.message}`));
+    try {
+      const output = execSync('npx eslint . --format json', {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        maxBuffer: 10 * 1024 * 1024,
+      });
+      
+      const trimmed = output.trim();
+      if (!trimmed) {
+        resolve([]);
+        return;
       }
-    });
+      const data = JSON.parse(trimmed);
+      resolve(data);
+    } catch (e) {
+      if (e.stdout) {
+        try {
+          const data = JSON.parse(e.stdout);
+          resolve(data);
+        } catch (parseError) {
+          reject(new Error(`Failed to parse ESLint output: ${parseError.message}`));
+        }
+      } else {
+        reject(new Error(`Failed to run ESLint: ${e.message}`));
+      }
+    }
   });
 };
 
