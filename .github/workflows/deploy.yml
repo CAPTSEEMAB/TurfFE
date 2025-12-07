@@ -1,0 +1,171 @@
+name: Deploy React App to S3 and CloudFront
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+      env:
+        VITE_API_URL: http://turf-backend-env.eba-wkdqipjt.us-east-1.elasticbeanstalk.com
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Create S3 bucket if not exists
+      run: |
+        aws s3 mb s3://turf-frontend-29062025 --region us-east-1 || echo "Bucket already exists"
+        
+        # Enable static website hosting
+        aws s3 website s3://turf-frontend-29062025 \
+          --index-document index.html \
+          --error-document index.html
+
+    - name: Deploy to S3
+      run: |
+        # Upload assets with long cache
+        aws s3 sync build/ s3://turf-frontend-29062025 \
+          --delete \
+          --cache-control "public,max-age=31536000,immutable" \
+          --exclude "*.html" \
+          --exclude "service-worker.js"
+        
+        # Upload HTML files with no cache
+        aws s3 sync build/ s3://turf-frontend-29062025 \
+          --delete \
+          --cache-control "public,max-age=0,must-revalidate" \
+          --exclude "*" \
+          --include "*.html" \
+          --include "service-worker.js"
+
+    - name: Set S3 bucket policy for public access
+      run: |
+        aws s3api put-public-access-block \
+          --bucket turf-frontend-29062025 \
+          --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"
+        
+        sleep 3
+        
+        cat > bucket-policy.json << EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PublicReadGetObject",
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::turf-frontend-29062025/*"
+            }
+          ]
+        }
+        EOF
+        
+        aws s3api put-bucket-policy \
+          --bucket turf-frontend-29062025 \
+          --policy file://bucket-policy.json
+
+    - name: Create or update CloudFront distribution
+      id: cloudfront
+      run: |
+        EXISTING_DIST=$(aws cloudfront list-distributions \
+          --query "DistributionList.Items[?Comment=='Turf Frontend Distribution'].Id" \
+          --output text)
+        
+        if [ -z "$EXISTING_DIST" ] || [ "$EXISTING_DIST" = "None" ]; then
+          echo "Creating new CloudFront distribution..."
+        
+          cat > cloudfront-config.json << 'EOF'
+        {
+          "CallerReference": "turf-fe-$(date +%s)",
+          "Comment": "Turf Frontend Distribution",
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "turf-s3-origin",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "AllowedMethods": {
+              "Quantity": 2,
+              "Items": ["GET", "HEAD"]
+            },
+            "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+            "Compress": true
+          },
+          "Origins": {
+            "Quantity": 1,
+            "Items": [
+              {
+                "Id": "turf-s3-origin",
+                "DomainName": "turf-frontend-29062025.s3-website-us-east-1.amazonaws.com",
+                "CustomOriginConfig": {
+                  "HTTPPort": 80,
+                  "HTTPSPort": 443,
+                  "OriginProtocolPolicy": "http-only"
+                }
+              }
+            ]
+          },
+          "Enabled": true,
+          "DefaultRootObject": "index.html",
+          "CustomErrorResponses": {
+            "Quantity": 1,
+            "Items": [
+              {
+                "ErrorCode": 404,
+                "ResponsePagePath": "/index.html",
+                "ResponseCode": "200",
+                "ErrorCachingMinTTL": 300
+              }
+            ]
+          }
+        }
+        EOF
+          
+          DISTRIBUTION_ID=$(aws cloudfront create-distribution \
+            --distribution-config file://cloudfront-config.json \
+            --query 'Distribution.Id' \
+            --output text)
+          
+          echo "Created distribution: $DISTRIBUTION_ID"
+          echo "distribution-id=$DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+        else
+          echo "Using existing distribution: $EXISTING_DIST"
+          echo "distribution-id=$EXISTING_DIST" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Invalidate CloudFront cache
+      run: |
+        if [ -n "${{ steps.cloudfront.outputs.distribution-id }}" ]; then
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.cloudfront.outputs.distribution-id }} \
+            --paths "/*"
+          echo "Cache invalidated for distribution ${{ steps.cloudfront.outputs.distribution-id }}"
+        fi
+
+    - name: Deployment complete
+      run: |
+        echo "✅ Deployment Complete!"
+        echo "S3 Website URL: http://turf-frontend-29062025.s3-website-us-east-1.amazonaws.com"
+        if [ -n "${{ steps.cloudfront.outputs.distribution-id }}" ]; then
+          echo "CloudFront Distribution ID: ${{ steps.cloudfront.outputs.distribution-id }}"
+        fi
