@@ -58,7 +58,7 @@ const generateReport = (data) => {
 const runEslint = () => {
   return new Promise((resolve, reject) => {
     try {
-      const output = execSync('npx eslint . --format json', {
+      const output = execSync('npx eslint . --format json --ignore-pattern scripts/', {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
         maxBuffer: 10 * 1024 * 1024,

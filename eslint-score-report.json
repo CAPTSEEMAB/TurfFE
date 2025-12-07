@@ -1,9 +1,9 @@
 {
-  "score": "9.26",
+  "score": "9.25",
   "rating": "EXCELLENT (A+)",
-  "totalFiles": 84,
-  "filesWithIssues": 33,
+  "totalFiles": 83,
+  "filesWithIssues": 32,
   "errors": 16,
-  "warnings": 61,
+  "warnings": 60,
   "issuePerFile": "0.92"
 }
