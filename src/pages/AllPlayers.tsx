@@ -150,7 +150,7 @@ const AllPlayers = () => {
         <DialogTrigger asChild>
           <Button className="gradient-primary shadow-glow transition-spring hover:scale-105">
             <UserPlus className="mr-2 h-5 w-5" />
-            Add New Player
+            Add Player
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
