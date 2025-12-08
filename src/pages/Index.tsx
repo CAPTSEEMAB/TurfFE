@@ -255,7 +255,7 @@ const Index = () => {
                 {/* Performance Comparison Chart */}
                 <Card className="glass border-primary/20 shadow-card animate-fade-in-up">
                   <CardHeader>
-                    <CardTitle className="text-2xl font-display text-gradient">Average Performance by Player</CardTitle>
+                    <CardTitle className="text-2xl font-display text-gradient">AVG Performance by Player</CardTitle>
                     <p className="text-sm text-muted-foreground">Points, Assists, and Rebounds comparison</p>
                   </CardHeader>
                   <CardContent>
