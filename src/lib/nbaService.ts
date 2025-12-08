@@ -68,8 +68,7 @@ class SportsOddsService {
 
       const data = await response.json();
       return limit ? data.slice(0, limit) : data || [];
-    } catch (error) {
-      console.error(`Error fetching ${sportKey} odds:`, error);
+    } catch {
       return [];
     }
   }
@@ -95,8 +94,7 @@ class SportsOddsService {
       return data ? data.filter((game: SportGame) =>
         new Date(game.commence_time).toDateString() === targetDate
       ) : [];
-    } catch (error) {
-      console.error(`Error fetching ${sportKey} odds by date:`, error);
+    } catch {
       return [];
     }
   }

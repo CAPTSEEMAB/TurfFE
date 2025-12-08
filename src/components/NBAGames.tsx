@@ -41,7 +41,6 @@ export const NBAGames: React.FC<NBAGamesProps> = ({
         setGames(fetchedGames);
       } catch (err) {
         setError(`Failed to load ${nbaService.getSportConfig(sport).displayName} odds`);
-        console.error('Error fetching sports odds:', err);
       } finally {
         setLoading(false);
       }
